@@ -11,6 +11,7 @@ const defaults={
   premiumEnabled:true,
   adultModeEnabled:true,
   adultMediaEnabled:false,
+  comfyuiEnabled:true,
   plansEnabled:{free:true,plus:true,pro:true},
   requireAgeVerification:true,
   updatedAt:null
