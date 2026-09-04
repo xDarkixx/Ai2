@@ -1,0 +1,13 @@
+{
+  "platformEnabled": true,
+  "premiumEnabled": true,
+  "adultModeEnabled": true,
+  "adultMediaEnabled": false,
+  "plansEnabled": {
+    "free": true,
+    "plus": true,
+    "pro": true
+  },
+  "requireAgeVerification": true,
+  "updatedAt": null
+}
