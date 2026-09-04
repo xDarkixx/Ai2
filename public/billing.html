@@ -22,10 +22,11 @@
 const userKey='ai2-billing-user-id';
 const userId=localStorage.getItem(userKey)||crypto.randomUUID();
 localStorage.setItem(userKey,userId);
+const paymentBase=(location.protocol+'//'+location.hostname+':'+(location.port==='3020'?'3020':'3020')).replace(/\/$/,'');
 const $=s=>document.querySelector(s);
-async function api(url,options={}){const r=await fetch(url,{headers:{'content-type':'application/json',...(options.headers||{})},...options});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Anfrage fehlgeschlagen');return d}
-async function status(){try{const d=await api('/api/billing/status/'+encodeURIComponent(userId));$('#status').innerHTML='<h2>Aktueller Status</h2><p><strong>'+d.plan.toUpperCase()+'</strong> · '+(d.premium?'Premium aktiv':'Kostenlos')+'</p>';}catch(e){$('#status').textContent='Payment-Service nicht erreichbar: '+e.message}}
-async function checkout(plan){const email=$('#email').value.trim();if(!email){alert('Bitte zuerst deine E-Mail-Adresse eingeben.');return}try{const d=await api('/api/billing/checkout',{method:'POST',body:JSON.stringify({userId,email,plan})});location.href=d.url}catch(e){alert(e.message)}}
+async function api(url,options={}){const r=await fetch(paymentBase+url,{headers:{'content-type':'application/json'},...options});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Anfrage fehlgeschlagen');return d}
+async function status(){try{const d=await api('/api/payments/public/status/'+encodeURIComponent(userId));$('#status').innerHTML='<h2>Aktueller Status</h2><p><strong>'+d.plan.toUpperCase()+'</strong> · '+(d.premium?'Premium aktiv':'Kostenlos')+'</p>';}catch(e){$('#status').textContent='Payment-Service nicht erreichbar: '+e.message}}
+async function checkout(plan){const email=$('#email').value.trim();if(!email){alert('Bitte zuerst deine E-Mail-Adresse eingeben.');return}try{const d=await api('/api/payments/public/checkout',{method:'POST',body:JSON.stringify({userId,email,plan})});location.href=d.url}catch(e){alert(e.message)}}
 document.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>checkout(b.dataset.plan));$('#refresh').onclick=status;status();
 </script>
 </body>
