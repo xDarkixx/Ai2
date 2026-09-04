@@ -4,7 +4,7 @@
   "private": true,
   "description": "Self-hosted AI companion platform with adult characters, chat, memory, media adapters and local LLM support.",
   "type": "module",
-  "scripts": {"start":"node server.js","check":"node --check server.js && node --check public/app.js"},
+  "scripts": {"start":"node server.js","start:token":"node auth/token-server.js","check":"node --check server.js && node --check public/app.js && node --check auth/token-server.js"},
   "dependencies": {"express":"^5.1.0"},
   "engines": {"node": ">=20"}
 }
