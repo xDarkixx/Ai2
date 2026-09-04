@@ -1,0 +1,24 @@
+[Unit]
+Description=Ai2 ComfyUI local image generation service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__AI2_USER__
+WorkingDirectory=__AI2_COMFYUI_ROOT__
+Environment=COMFYUI_HOST=127.0.0.1
+Environment=COMFYUI_PORT=8188
+ExecStart=__AI2_COMFYUI_ROOT__/venv/bin/python __AI2_COMFYUI_ROOT__/main.py --listen 127.0.0.1 --port 8188
+Restart=on-failure
+RestartSec=5
+KillMode=mixed
+TimeoutStopSec=20
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=__AI2_COMFYUI_ROOT__
+
+[Install]
+WantedBy=multi-user.target
