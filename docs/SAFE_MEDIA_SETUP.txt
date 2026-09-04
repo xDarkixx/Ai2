@@ -1,0 +1,42 @@
+Ai2 – Sichere Medien-Anbindung
+===============================
+
+Diese Datei beschreibt die Einbindung eines Bild-/Video-Providers für nicht-grafische Inhalte.
+
+WICHTIG
+-------
+Ai2 enthält absichtlich keinen Generator für grafisch-pornografische Inhalte. Der Medien-Endpunkt blockiert entsprechende Prompts.
+
+1. Provider auswählen
+---------------------
+Wähle einen Bild- oder Videoanbieter, der eine dokumentierte API und die für dein Einsatzgebiet passenden Inhaltsregeln besitzt.
+
+2. Provider-Adapter
+-------------------
+Die UI ruft POST /api/media/generate auf. Der aktuelle Server legt Medienanfragen als Jobs ab und meldet „provider_required“.
+Für einen konkreten Provider kann anschließend ein eigener Adapter ergänzt werden, der nur zulässige Prompts an dessen API sendet.
+
+3. Sicherheitsregeln
+--------------------
+- Nur erwachsene, fiktive Figuren verwenden.
+- Keine Minderjährigen oder minderjährig wirkenden Personen.
+- Keine nicht-einvernehmlichen Inhalte.
+- Keine illegalen Inhalte.
+- Keine grafisch-sexuellen Generierungen.
+- API-Schlüssel ausschließlich serverseitig in .env speichern.
+- Niemals API-Schlüssel in public/ oder Frontend-JavaScript eintragen.
+
+4. Lokale KI
+------------
+Für Text-Chat kann Ollama lokal genutzt werden:
+LLM_PROVIDER=ollama
+OLLAMA_BASE_URL=http://127.0.0.1:11434
+OLLAMA_MODEL=llama3.2
+
+5. Test
+-------
+npm install
+npm run check
+npm start
+
+Danach /api/health und die Weboberfläche öffnen. Vor dem produktiven Einsatz zusätzlich Authentifizierung, Rate-Limits, HTTPS, Backups und Provider-spezifische Moderation konfigurieren.
