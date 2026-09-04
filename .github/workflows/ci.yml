@@ -38,5 +38,10 @@ jobs:
           curl -fsS -X DELETE "http://127.0.0.1:3000/api/memory/$MEMORY_ID" -o /dev/null -w '%{http_code}' | grep -q '^204$'
           ! curl -fsS "http://127.0.0.1:3000/api/memory?characterId=luna" | grep -q 'CI persistent memory'
           curl -fsS -X POST http://127.0.0.1:3000/api/collection -H 'content-type: application/json' -d '{"title":"CI legacy memory","type":"memory","text":"CI legacy persistent memory","characterId":"luna"}' | grep -q 'CI legacy persistent memory'
+      - name: Test ComfyUI modules without a GPU server
+        run: |
+          node --input-type=module -e "import('./comfyui/workflow-builder.js').then(({buildTextToImageWorkflow})=>{const w=buildTextToImageWorkflow({prompt:'adult woman portrait, cinematic studio lighting',checkpoint:'example.safetensors',seed:42}); if(w['3']?.class_type!=='KSampler'||w['4']?.class_type!=='CheckpointLoaderSimple') process.exit(1); console.log('ComfyUI workflow builder OK')})"
+          node --input-type=module -e "import('./comfyui/client.js').then(m=>console.log('ComfyUI client module OK',typeof m.queueWorkflow))"
+          node --input-type=module -e "import('./comfyui/gateway.js').then(()=>setTimeout(()=>process.exit(0),100))" >/tmp/comfy-gateway.log 2>&1 & GPID=$!; sleep 1; kill $GPID 2>/dev/null || true; cat /tmp/comfy-gateway.log
       - name: Test Ollama orchestration
         run: node scripts/test-ollama-tools.mjs
