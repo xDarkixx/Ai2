@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readAccess, writeAccess } from '../premium/access-control.js';
+import { listCoupons, createCoupon, updateCoupon, deleteCoupon } from '../premium/coupons.js';
 
 const app=express();
 const port=Number(process.env.AI2_ADMIN_CONTROL_PORT||3011);
@@ -25,7 +26,6 @@ app.patch('/api/admin/access',guard,async(req,res)=>{
   const allowed=['platformEnabled','premiumEnabled','adultModeEnabled','adultMediaEnabled','comfyuiEnabled','plansEnabled','requireAgeVerification'];
   const patch={};
   for(const key of allowed)if(req.body?.[key]!==undefined)patch[key]=req.body[key];
-  if(typeof patch.adultMediaEnabled==='boolean'&&patch.adultMediaEnabled)patch.adultMediaEnabled=true;
   const state=await writeAccess(patch);
   res.json(state);
 });
@@ -41,5 +41,10 @@ app.put('/api/admin/subscriptions/:userId',guard,async(req,res)=>{
   await writeSubscriptions(s);res.json(s.users[userId]);
 });
 app.delete('/api/admin/subscriptions/:userId',guard,async(req,res)=>{const s=await readSubscriptions();delete s.users[String(req.params.userId)];await writeSubscriptions(s);res.status(204).end();});
+
+app.get('/api/admin/coupons',guard,async(_q,r)=>r.json({coupons:await listCoupons()}));
+app.post('/api/admin/coupons',guard,async(req,res)=>{try{res.status(201).json(await createCoupon(req.body||{}));}catch(e){res.status(400).json({error:e.message});}});
+app.patch('/api/admin/coupons/:code',guard,async(req,res)=>{try{res.json(await updateCoupon(req.params.code,req.body||{}));}catch(e){res.status(400).json({error:e.message});}});
+app.delete('/api/admin/coupons/:code',guard,async(req,res)=>{try{await deleteCoupon(req.params.code);res.status(204).end();}catch(e){res.status(404).json({error:e.message});}});
 
 app.listen(port,()=>console.log(`Ai2 admin-control running on http://localhost:${port}`));
