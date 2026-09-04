@@ -47,3 +47,23 @@ jobs:
           sed -i '/^[[:space:]]*http[[:space:]]*{/a\\    access_log off;' deploy/nginx/nginx.conf
           sed -i 's/listen 80;/listen 8080;/' deploy/nginx/nginx.conf
           nginx -t -p /etc/nginx -c "$GITHUB_WORKSPACE/deploy/nginx/nginx.conf" -g 'pid /tmp/ai2-nginx.pid; error_log /tmp/ai2-nginx-error.log;'
+
+  installer-clean:
+    name: Ubuntu clean installer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run installer in a clean Ubuntu runner
+        env:
+          AI2_INSTALL_DIR: ${{ runner.temp }}/Ai2
+        run: bash install-ubuntu.sh --no-service --install-dir "$AI2_INSTALL_DIR"
+      - name: Verify clean installation
+        env:
+          AI2_INSTALL_DIR: ${{ runner.temp }}/Ai2
+        run: |
+          test -d "$AI2_INSTALL_DIR/.git"
+          test -f "$AI2_INSTALL_DIR/.env"
+          test -x "$AI2_INSTALL_DIR/build/ai2_native"
+          grep -q '^LLM_PROVIDER=ollama' "$AI2_INSTALL_DIR/.env"
+          node --version
+          npm --version
