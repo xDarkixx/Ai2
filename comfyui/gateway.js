@@ -7,7 +7,7 @@ import { comfyHealth, queueWorkflow, waitForWorkflow, outputUrl } from './client
 import { assertSafePrompt, buildTextToImageWorkflow } from './workflow-builder.js';
 
 const app=express();
-const port=Number(process.env.COMFYUI_GATEWAY_PORT||3020);
+const port=Number(process.env.COMFYUI_GATEWAY_PORT||3030);
 const dataDir=path.join(path.dirname(fileURLToPath(import.meta.url)),'..','data','comfyui');
 const jobs=new Map();
 app.use(express.json({limit:'64kb'}));
