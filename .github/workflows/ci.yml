@@ -13,10 +13,18 @@ jobs:
       - run: npm install --package-lock-only
       - run: npm install
       - run: npm run check
-      - run: |
-          node server.js > server.log 2>&1 &
+      - name: Build native engine
+        run: cmake -S native -B build && cmake --build build --config Release
+      - name: Test native bridge
+        run: |
+          printf '%s\n' '{"op":"ping"}' | ./build/ai2_native --bridge
+      - name: Test web server
+        run: |
+          AI2_NATIVE_BINARY="$PWD/build/ai2_native" LLM_PROVIDER=native node server.js > server.log 2>&1 &
           PID=$!
           trap 'kill $PID' EXIT
           for i in {1..20}; do curl -fsS http://127.0.0.1:3000/api/health && break || sleep 1; done
+          curl -fsS http://127.0.0.1:3000/api/native/health
           curl -fsS http://127.0.0.1:3000/api/characters
           curl -fsS http://127.0.0.1:3000/api/config
+          curl -fsS -X POST http://127.0.0.1:3000/api/chat -H 'content-type: application/json' -d '{"characterId":"luna","message":"Hallo","ageConfirmed":true}'
