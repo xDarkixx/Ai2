@@ -1,0 +1,17 @@
+ComfyUI/
+models/
+output/
+input/
+user/
+custom_nodes/
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.bin
+*.gguf
+*.onnx
+__pycache__/
+*.pyc
+.venv/
+venv/
