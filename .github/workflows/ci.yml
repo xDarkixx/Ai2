@@ -51,6 +51,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y nginx
+          cp /etc/nginx/mime.types deploy/nginx/mime.types
           nginx -t -p /etc/nginx -c "$GITHUB_WORKSPACE/deploy/nginx/nginx.conf"
 
   test-windows:
