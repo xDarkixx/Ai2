@@ -10,7 +10,7 @@
     "start:admin":"node admin-control/server.js",
     "start:comfyui":"node comfyui/gateway.js",
     "start:all":"node scripts/start-all.js",
-    "check":"node --check server.js && node --check public/app.js && node --check auth/token-server.js && node --check admin-control/server.js && node --check premium/access-control.js && node --check comfyui/client.js && node --check comfyui/workflow-builder.js && node --check comfyui/gateway.js"
+    "check":"node --check server.js && node --check public/app.js && node --check auth/token-server.js && node --check admin-control/server.js && node --check premium/access-control.js && node --check premium/coupons.js && node --check comfyui/client.js && node --check comfyui/workflow-builder.js && node --check comfyui/gateway.js"
   },
   "dependencies": {"express":"^5.1.0"},
   "engines": {"node": ">=20"}
