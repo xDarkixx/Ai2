@@ -1,17 +1,10 @@
 {
   "name": "ai2-companion",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "Self-hosted AI companion platform with characters, chat, memory and local LLM support.",
+  "description": "Self-hosted AI companion platform with adult characters, chat, memory, media adapters and local LLM support.",
   "type": "module",
-  "scripts": {
-    "start": "node server.js",
-    "check": "node --check server.js && node --check public/app.js"
-  },
-  "dependencies": {
-    "express": "^5.1.0"
-  },
-  "engines": {
-    "node": ">=20"
-  }
+  "scripts": {"start":"node server.js","check":"node --check server.js && node --check public/app.js"},
+  "dependencies": {"express":"^5.1.0"},
+  "engines": {"node": ">=20"}
 }
