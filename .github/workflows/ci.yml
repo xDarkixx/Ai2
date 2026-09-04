@@ -1,0 +1,23 @@
+name: Ai2 CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install --package-lock-only
+      - run: npm install
+      - run: node --check server.js
+      - run: node --check public/app.js
+      - run: |
+          node server.js > server.log 2>&1 &
+          PID=$!
+          trap 'kill $PID' EXIT
+          for i in {1..20}; do curl -fsS http://127.0.0.1:3000/api/health && break || sleep 1; done
+          curl -fsS http://127.0.0.1:3000/api/characters
