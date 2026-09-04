@@ -1,0 +1,12 @@
+{
+  "base_model": "Qwen/Qwen3-0.6B",
+  "output_dir": "./output/ai2-companion",
+  "train_file": "./data/train.jsonl",
+  "valid_file": "./data/valid.jsonl",
+  "epochs": 2,
+  "learning_rate": 0.0002,
+  "max_seq_length": 2048,
+  "lora_rank": 16,
+  "lora_alpha": 32,
+  "lora_dropout": 0.05
+}
