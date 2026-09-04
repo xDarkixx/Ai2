@@ -1,14 +1,18 @@
 <!doctype html>
 <html lang="de">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b0b12"><title>Ai2 — AI Companion</title><link rel="stylesheet" href="/style.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#08080d"><title>Ai2 — AI Companion</title><link rel="stylesheet" href="/style.css"></head>
 <body>
 <div class="app-shell">
-<aside class="sidebar"><div class="brand"><span class="brand-mark">✦</span><span>Ai2</span></div><button class="new-chat" id="newChat">＋ Neuer Chat</button>
-<div class="side-nav"><button data-view="discover">🔎 Entdecken</button><button data-view="chat">💬 Chat</button><button data-view="collection">♡ Sammlung</button><button data-view="media">✨ Medien</button><button data-view="create">＋ Charakter erstellen</button></div>
-<div class="side-title">Deine Charaktere</div><div id="characterList" class="character-list"></div><div class="sidebar-bottom"><button id="memoryBtn">🧠 Memory</button><button id="settingsBtn">⚙ Einstellungen</button></div></aside>
+<aside class="sidebar">
+  <div class="brand"><span class="brand-mark">✦</span><span>Ai2</span><span class="brand-badge">18+</span></div>
+  <button class="new-chat" id="newChat"><span>＋</span> Neuer Chat</button>
+  <nav class="side-nav"><button data-view="discover">⌕ <span>Entdecken</span></button><button data-view="chat" class="selected">◉ <span>Chat</span></button><button data-view="collection">♡ <span>Sammlung</span></button><button data-view="media">✦ <span>Medien</span></button><button data-view="create">＋ <span>Charakter erstellen</span></button></nav>
+  <div class="side-title">Deine Charaktere</div><div id="characterList" class="character-list"></div>
+  <div class="sidebar-bottom"><button id="memoryBtn">🧠 <span>Memory</span></button><button id="settingsBtn">⚙ <span>Einstellungen</span></button><div class="user-mini"><div class="user-avatar">A</div><div><b>Mein Ai2</b><small>Privater Bereich</small></div></div></div>
+</aside>
 <main class="chat-area">
-<header class="topbar"><div><div id="activeName" class="active-name">Luna</div><div id="activeStatus" class="status">● online · 18+</div></div><div class="top-actions"><button id="voiceBtn" title="Vorlesen">🎙</button><button id="themeBtn" title="Theme">◐</button></div></header>
-<section id="view" class="view"><div id="messages" class="messages"></div><form id="composer" class="composer"><button type="button" id="attachBtn" class="icon-btn">＋</button><input id="messageInput" autocomplete="off" placeholder="Schreib eine Nachricht …"><button type="submit" class="send-btn">➤</button></form><div class="disclaimer">Ai2 · 18+ · Fiktive erwachsene Charaktere. Keine grafisch-sexuellen Inhalte.</div></section>
+<header class="topbar"><div class="profile-head"><div id="activeAvatar" class="top-avatar">🌙</div><div><div id="activeName" class="active-name">Luna</div><div id="activeStatus" class="status"><i></i> online · 18+</div></div></div><div class="top-actions"><button id="voiceBtn" title="Vorlesen">◖</button><button id="themeBtn" title="Theme">◐</button><button id="attachBtn" title="Medien">＋</button></div></header>
+<section id="view" class="view"><div class="chat-hero"><div class="hero-avatar" id="heroAvatar">🌙</div><h1 id="heroName">Luna</h1><p>Deine virtuelle Begleiterin · <span>18+</span></p></div><div id="messages" class="messages"></div><form id="composer" class="composer"><button type="button" id="attachChat" class="icon-btn">＋</button><input id="messageInput" autocomplete="off" placeholder="Schreib Luna eine Nachricht …"><button type="submit" class="send-btn">➤</button></form><div class="disclaimer">Ai2 · 18+ · Fiktive erwachsene Charaktere · Bitte respektvoll und einvernehmlich bleiben.</div></section>
 </main>
-<aside id="memoryPanel" class="memory-panel hidden"><div class="panel-head"><h2>Memory</h2><button id="closeMemory">×</button></div><p class="muted">Wichtige Dinge, die dein Charakter behalten soll.</p><div id="memoryItems"></div><form id="memoryForm"><input id="memoryInput" placeholder="z. B. Ich mag Kaffee"><button>Speichern</button></form></aside>
+<aside id="memoryPanel" class="memory-panel hidden"><div class="panel-head"><div><small>DEIN CHARAKTER</small><h2>Memory</h2></div><button id="closeMemory">×</button></div><p class="muted">Wichtige Dinge, die dein Charakter über dich behalten soll.</p><div id="memoryItems"></div><form id="memoryForm"><input id="memoryInput" placeholder="z. B. Ich mag Kaffee"><button>Speichern</button></form></aside>
 </div><script src="/app.js"></script></body></html>
