@@ -20,15 +20,19 @@ jobs:
       - name: Test native bridge
         run: |
           printf '%s\n' '{"op":"ping"}' | ./build/ai2_native --bridge
-      - name: Test web server
+      - name: Test web server and memory CRUD
         run: |
-          AI2_NATIVE_BINARY="$PWD/build/ai2_native" LLM_PROVIDER=native node server.js > server.log 2>&1 &
+          AI2_NATIVE_BINARY="$PWD/build/ai2_native" LLM_PROVIDER=test node server.js > server.log 2>&1 &
           PID=$!
           trap 'kill $PID' EXIT
           for i in {1..20}; do curl -fsS http://127.0.0.1:3000/api/health && break || sleep 1; done
           curl -fsS http://127.0.0.1:3000/api/native/health
           curl -fsS http://127.0.0.1:3000/api/characters
           curl -fsS http://127.0.0.1:3000/api/config
-          curl -fsS -X POST http://127.0.0.1:3000/api/chat -H 'content-type: application/json' -d '{"characterId":"luna","message":"Hallo","ageConfirmed":true}'
-          curl -fsS -X POST http://127.0.0.1:3000/api/collection -H 'content-type: application/json' -d '{"title":"CI memory","type":"memory","text":"CI persistent memory","characterId":"luna"}'
-          curl -fsS http://127.0.0.1:3000/api/collection | grep -q 'CI persistent memory'
+          curl -fsS -X POST http://127.0.0.1:3000/api/chat -H 'content-type: application/json' -d '{"characterId":"luna","message":"Hallo","ageConfirmed":true}' | grep -q 'TEST-LLM'
+          curl -fsS -X POST http://127.0.0.1:3000/api/memory -H 'content-type: application/json' -d '{"characterId":"luna","text":"CI persistent memory","memoryType":"Fakt"}' | tee memory.json | grep -q 'CI persistent memory'
+          MEMORY_ID=$(node -e "console.log(require('./memory.json').id)")
+          curl -fsS "http://127.0.0.1:3000/api/memory?characterId=luna" | grep -q 'CI persistent memory'
+          curl -fsS -X DELETE "http://127.0.0.1:3000/api/memory/$MEMORY_ID" -o /dev/null -w '%{http_code}' | grep -q '^204$'
+          ! curl -fsS "http://127.0.0.1:3000/api/memory?characterId=luna" | grep -q 'CI persistent memory'
+          curl -fsS -X POST http://127.0.0.1:3000/api/collection -H 'content-type: application/json' -d '{"title":"CI legacy memory","type":"memory","text":"CI legacy persistent memory","characterId":"luna"}' | grep -q 'CI legacy persistent memory'
