@@ -1,37 +1,34 @@
-# Ai2 — AI Companion
+# Ai2
 
-Eine eigenständige, selbst hostbare Basis für eine KI-Companion-Plattform.
+Self-hosted AI companion starter inspired by modern AI companion apps.
 
-## Enthalten
+## Features
 
-- Charakter-Auswahl mit unterschiedlichen Persönlichkeiten
-- Chat-Oberfläche für Desktop und Mobile
-- lokales Memory im Browser
-- Node.js/Express API
-- Health-Endpoint für Deployment-Checks
-- Provider-unabhängige Architektur als Basis für echte LLM-, TTS-, STT- und Bilddienste
+- Adult-only 18+ access gate
+- Fictional adult characters
+- Chat history and local memory
+- Pluggable LLM providers
+- Demo mode works without an API key
+- Mobile-friendly web UI
 
-## Start
+## LLM providers
+
+`LLM_PROVIDER` supports `demo`, `gemini`, `groq`, `openrouter`, and `custom` (OpenAI-compatible).
+
+Free access is provider-dependent and rate-limited. Google documents a free Gemini API tier; Hugging Face also provides limited monthly credits through Inference Providers. Do not put API keys in the repository.
+
+## Run
 
 ```bash
 npm install
+cp .env.example .env
 npm start
 ```
 
-Danach `http://localhost:3000` öffnen.
+Open `http://localhost:3000`.
 
-## Echte KI anschließen
+## Adult mode
 
-Die Demo nutzt absichtlich keine eingebetteten API-Schlüssel. Für Produktion sollte `/api/chat` an einen eigenen oder externen LLM-Provider angebunden werden. Secrets gehören ausschließlich in Umgebungsvariablen.
+Ai2 is designed for adults 18+. Characters are explicitly fictional adults. The application supports romance, flirting and suggestive conversation. It does not implement an unrestricted explicit-pornography mode.
 
-## Nächste Module
-
-1. Authentifizierung und Benutzerkonten
-2. PostgreSQL/SQLite für Charaktere, Chats und Memories
-3. echter LLM-Adapter
-4. Bild- und Voice-Provider
-5. Moderation, Alters-/Jugendschutz und Abuse-Prevention
-6. Billing/Credits und Admin-Dashboard
-7. Docker + CI Tests
-
-Ai2 ist eine eigene Implementierung und verwendet nicht das Branding oder den Quellcode von Candy.ai.
+For a real deployment, add server-side account authentication, robust age verification, rate limiting, logging/privacy controls, provider-specific content controls, and a database instead of relying only on browser localStorage.
