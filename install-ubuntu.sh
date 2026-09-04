@@ -5,9 +5,11 @@ set -Eeuo pipefail
 # Linux/Ubuntu only. Optional services are installed only when requested.
 
 APP_DIR="${AI2_INSTALL_DIR:-$HOME/Ai2}"
+COMFYUI_ROOT="${AI2_COMFYUI_ROOT:-/opt/ai2-comfyui}"
 NODE_MAJOR=20
 WITH_OLLAMA=0
 WITH_NGINX=0
+WITH_COMFYUI=0
 ENABLE_SERVICE=1
 OLLAMA_MODEL="qwen3:0.6b-q4_K_M"
 
@@ -20,8 +22,10 @@ Usage: ./install-ubuntu.sh [options]
 Options:
   --with-ollama       Install Ollama and pull the selected local model.
   --with-nginx        Install/enable the Ai2 NGINX reverse proxy.
+  --with-comfyui      Install the official ComfyUI runtime and enable its service.
   --no-service        Do not install/enable the Ai2 systemd service.
   --install-dir DIR   Install/update Ai2 in DIR (default: ~/Ai2).
+  --comfyui-dir DIR   ComfyUI runtime directory (default: /opt/ai2-comfyui).
   --ollama-model MOD  Ollama model to pull with --with-ollama.
   --help              Show this help.
 EOF
@@ -31,8 +35,10 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --with-ollama) WITH_OLLAMA=1; shift ;;
     --with-nginx) WITH_NGINX=1; shift ;;
+    --with-comfyui) WITH_COMFYUI=1; shift ;;
     --no-service) ENABLE_SERVICE=0; shift ;;
     --install-dir) [[ $# -ge 2 ]] || { echo 'ERROR: --install-dir needs a value' >&2; exit 2; }; APP_DIR="$2"; shift 2 ;;
+    --comfyui-dir) [[ $# -ge 2 ]] || { echo 'ERROR: --comfyui-dir needs a value' >&2; exit 2; }; COMFYUI_ROOT="$2"; shift 2 ;;
     --ollama-model) [[ $# -ge 2 ]] || { echo 'ERROR: --ollama-model needs a value' >&2; exit 2; }; OLLAMA_MODEL="$2"; shift 2 ;;
     --help|-h) usage; exit 0 ;;
     *) echo "ERROR: Unknown option: $1" >&2; usage >&2; exit 2 ;;
@@ -93,7 +99,8 @@ if [[ ! -f .env ]]; then
   echo '==> Creating .env from .env.example'
   cp .env.example .env
 fi
-# Installer defaults are local-first and safe for a fresh installation.
+# Fresh installs use local-first defaults. Existing user configuration is otherwise preserved.
+if [[ ! -s .env ]]; then cp .env.example .env; fi
 sed -i 's/^LLM_PROVIDER=.*/LLM_PROVIDER=ollama/' .env
 sed -i 's/^COMFYUI_ENABLED=.*/COMFYUI_ENABLED=false/' .env
 sed -i 's/^WAN22_ENABLED=.*/WAN22_ENABLED=false/' .env
@@ -105,7 +112,6 @@ fi
 if ! grep -q '^AI2_ADMIN_TOKEN=.' .env; then
   sed -i "s|^AI2_ADMIN_TOKEN=.*|AI2_ADMIN_TOKEN=$(openssl rand -hex 32)|" .env
 fi
-chmod 600 .env
 
 if [[ "${WITH_OLLAMA}" -eq 1 ]]; then
   echo '==> Installing Ollama'
@@ -116,6 +122,19 @@ if [[ "${WITH_OLLAMA}" -eq 1 ]]; then
   sed -i "s/^OLLAMA_MODEL=.*/OLLAMA_MODEL=${OLLAMA_MODEL}/" .env
   sed -i "s/^AI2_LOCAL_MODELS=.*/AI2_LOCAL_MODELS=${OLLAMA_MODEL}/" .env
 fi
+
+if [[ "${WITH_COMFYUI}" -eq 1 ]]; then
+  echo "==> Installing official ComfyUI runtime in ${COMFYUI_ROOT}"
+  AI2_COMFYUI_ROOT="${COMFYUI_ROOT}" $SUDO -E bash "${APP_DIR}/comfyui/install-linux.sh"
+  $SUDO chown -R "${RUN_USER}:${RUN_USER}" "${COMFYUI_ROOT}"
+  sed -i 's/^COMFYUI_ENABLED=.*/COMFYUI_ENABLED=true/' .env
+  if grep -q '^COMFYUI_GATEWAY_PORT=' .env; then
+    sed -i 's/^COMFYUI_GATEWAY_PORT=.*/COMFYUI_GATEWAY_PORT=3030/' .env
+  else
+    printf '\nCOMFYUI_GATEWAY_PORT=3030\n' >> .env
+  fi
+fi
+chmod 600 .env
 
 echo '==> Building native Ai2 engine'
 cmake -S native -B build
@@ -137,6 +156,17 @@ if [[ "${ENABLE_SERVICE}" -eq 1 ]] && command -v systemctl >/dev/null 2>&1; then
   $SUDO systemctl restart ai2
 fi
 
+if [[ "${WITH_COMFYUI}" -eq 1 ]] && [[ "${ENABLE_SERVICE}" -eq 1 ]] && command -v systemctl >/dev/null 2>&1; then
+  echo '==> Installing/enabling ComfyUI systemd service'
+  SERVICE_TMP="$(mktemp)"
+  sed -e "s|__AI2_USER__|${RUN_USER}|g" -e "s|__AI2_COMFYUI_ROOT__|${COMFYUI_ROOT}|g" deploy/systemd/ai2-comfyui.service > "${SERVICE_TMP}"
+  $SUDO install -m 0644 "${SERVICE_TMP}" /etc/systemd/system/ai2-comfyui.service
+  rm -f "${SERVICE_TMP}"
+  $SUDO systemctl daemon-reload
+  $SUDO systemctl enable ai2-comfyui
+  $SUDO systemctl restart ai2-comfyui
+fi
+
 if [[ "${WITH_NGINX}" -eq 1 ]]; then
   echo '==> Installing Ai2 NGINX reverse proxy'
   $SUDO install -m 0644 deploy/nginx/ai2-site.conf /etc/nginx/sites-available/ai2
@@ -152,6 +182,7 @@ cat <<EOF
 Ai2 installation completed successfully.
 
 Install directory: ${APP_DIR}
+ComfyUI:           $([[ "${WITH_COMFYUI}" -eq 1 ]] && echo "enabled (${COMFYUI_ROOT})" || echo not installed)
 Core service:      $([[ "${ENABLE_SERVICE}" -eq 1 ]] && echo enabled || echo disabled)
 Ollama:            $([[ "${WITH_OLLAMA}" -eq 1 ]] && echo enabled || echo not installed)
 NGINX:             $([[ "${WITH_NGINX}" -eq 1 ]] && echo enabled || echo not installed)
@@ -161,8 +192,10 @@ Commands:
   npm run doctor
   npm run status
   systemctl status ai2
+  $([[ "${WITH_COMFYUI}" -eq 1 ]] && echo 'systemctl status ai2-comfyui')
   journalctl -u ai2 -f
 
 Direct URL: http://127.0.0.1:3000
+ComfyUI:    http://127.0.0.1:8188
 NGINX URL:  http://127.0.0.1/  (with --with-nginx)
 EOF
