@@ -22,14 +22,14 @@ async function writeSubscriptions(s){await fs.mkdir(path.dirname(subscriptionsFi
 app.get('/health',(_q,r)=>r.json({ok:true,service:'Ai2 admin-control'}));
 app.get('/api/admin/access',guard,async(_q,r)=>r.json(await readAccess()));
 app.patch('/api/admin/access',guard,async(req,res)=>{
-  const allowed=['platformEnabled','premiumEnabled','adultModeEnabled','adultMediaEnabled','plansEnabled','requireAgeVerification'];
+  const allowed=['platformEnabled','premiumEnabled','adultModeEnabled','adultMediaEnabled','comfyuiEnabled','plansEnabled','requireAgeVerification'];
   const patch={};
   for(const key of allowed)if(req.body?.[key]!==undefined)patch[key]=req.body[key];
   if(typeof patch.adultMediaEnabled==='boolean'&&patch.adultMediaEnabled)patch.adultMediaEnabled=true;
   const state=await writeAccess(patch);
   res.json(state);
 });
-app.get('/api/admin/plans',guard,async(_q,r)=>{const state=await readAccess();r.json({premiumEnabled:state.premiumEnabled,plansEnabled:state.plansEnabled});});
+app.get('/api/admin/plans',guard,async(_q,r)=>{const state=await readAccess();r.json({premiumEnabled:state.premiumEnabled,plansEnabled:state.plansEnabled,comfyuiEnabled:state.comfyuiEnabled});});
 app.get('/api/admin/subscriptions',guard,async(_q,r)=>r.json(await readSubscriptions()));
 app.put('/api/admin/subscriptions/:userId',guard,async(req,res)=>{
   const userId=String(req.params.userId||'').trim();
