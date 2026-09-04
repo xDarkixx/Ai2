@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#08080d"><title>Ai2 — Premium</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<main class="page" style="max-width:900px;margin:0 auto;padding:32px 20px">
+  <p><a href="/">← Zurück zu Ai2</a></p>
+  <h1>Ai2 Premium</h1>
+  <p class="muted">Verwalte dein Ai2-Abo über den selbst gehosteten Payment-Service.</p>
+  <div id="status" class="card">Lade Zahlungsstatus …</div>
+  <div class="cards" style="margin-top:20px">
+    <article class="card"><h2>Plus</h2><p>9,99 € / Monat</p><button data-plan="plus">Plus abonnieren</button></article>
+    <article class="card"><h2>Pro</h2><p>19,99 € / Monat</p><button data-plan="pro">Pro abonnieren</button></article>
+  </div>
+  <section class="card" style="margin-top:20px">
+    <h2>Abrechnung</h2>
+    <label>E-Mail<br><input id="email" type="email" autocomplete="email" placeholder="du@example.com" style="width:100%;max-width:480px"></label>
+    <p><button id="refresh">Status aktualisieren</button></p>
+    <p class="muted">Die Kartendaten werden nicht von Ai2 gespeichert. Die eigentliche Zahlungsabwicklung läuft über den konfigurierten Zahlungsanbieter.</p>
+  </section>
+</main>
+<script>
+const userKey='ai2-billing-user-id';
+const userId=localStorage.getItem(userKey)||crypto.randomUUID();
+localStorage.setItem(userKey,userId);
+const $=s=>document.querySelector(s);
+async function api(url,options={}){const r=await fetch(url,{headers:{'content-type':'application/json',...(options.headers||{})},...options});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||'Anfrage fehlgeschlagen');return d}
+async function status(){try{const d=await api('/api/billing/status/'+encodeURIComponent(userId));$('#status').innerHTML='<h2>Aktueller Status</h2><p><strong>'+d.plan.toUpperCase()+'</strong> · '+(d.premium?'Premium aktiv':'Kostenlos')+'</p>';}catch(e){$('#status').textContent='Payment-Service nicht erreichbar: '+e.message}}
+async function checkout(plan){const email=$('#email').value.trim();if(!email){alert('Bitte zuerst deine E-Mail-Adresse eingeben.');return}try{const d=await api('/api/billing/checkout',{method:'POST',body:JSON.stringify({userId,email,plan})});location.href=d.url}catch(e){alert(e.message)}}
+document.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>checkout(b.dataset.plan));$('#refresh').onclick=status;status();
+</script>
+</body>
+</html>
