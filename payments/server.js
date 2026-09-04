@@ -20,6 +20,7 @@ const publicCheckout=String(process.env.AI2_PAYMENT_PUBLIC_CHECKOUT||'false').to
 const plans={plus:{name:'Ai2 Plus',amount:999,currency:'eur',interval:'month',stripePriceId:String(process.env.STRIPE_PRICE_PLUS||'').trim()},pro:{name:'Ai2 Pro',amount:1999,currency:'eur',interval:'month',stripePriceId:String(process.env.STRIPE_PRICE_PRO||'').trim()}};
 const publicHits=new Map();
 app.disable('x-powered-by');
+app.use((req,res,next)=>{const origin=req.get('origin');if(origin&&origin===process.env.AI2_PAYMENT_ALLOWED_ORIGIN)res.setHeader('access-control-allow-origin',origin);res.setHeader('access-control-allow-methods','GET,POST,OPTIONS');res.setHeader('access-control-allow-headers','content-type');if(req.method==='OPTIONS')return res.sendStatus(204);next();});
 app.use(express.raw({type:'application/json',limit:'256kb'}));
 function empty(){return{customers:{},subscriptions:{},payments:{},events:{}};}
 async function readDb(){try{const x=JSON.parse(await fs.readFile(dbFile,'utf8'));return{...empty(),...x};}catch{return empty();}}
