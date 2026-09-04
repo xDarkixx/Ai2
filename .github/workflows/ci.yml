@@ -29,6 +29,8 @@ jobs:
           curl -fsS http://127.0.0.1:3000/api/native/health
           curl -fsS http://127.0.0.1:3000/api/characters
           curl -fsS http://127.0.0.1:3000/api/config
+          curl -fsS http://127.0.0.1:3000/api/models | grep -q 'qwen3:0.6b-q4_K_M'
+          curl -fsS http://127.0.0.1:3000/api/llm/tools | grep -q 'save_memory'
           curl -fsS -X POST http://127.0.0.1:3000/api/chat -H 'content-type: application/json' -d '{"characterId":"luna","message":"Hallo","ageConfirmed":true}' | grep -q 'TEST-LLM'
           curl -fsS -X POST http://127.0.0.1:3000/api/memory -H 'content-type: application/json' -d '{"characterId":"luna","text":"CI persistent memory","memoryType":"Fakt"}' | tee memory.json | grep -q 'CI persistent memory'
           MEMORY_ID=$(node -e "console.log(require('./memory.json').id)")
@@ -36,3 +38,5 @@ jobs:
           curl -fsS -X DELETE "http://127.0.0.1:3000/api/memory/$MEMORY_ID" -o /dev/null -w '%{http_code}' | grep -q '^204$'
           ! curl -fsS "http://127.0.0.1:3000/api/memory?characterId=luna" | grep -q 'CI persistent memory'
           curl -fsS -X POST http://127.0.0.1:3000/api/collection -H 'content-type: application/json' -d '{"title":"CI legacy memory","type":"memory","text":"CI legacy persistent memory","characterId":"luna"}' | grep -q 'CI legacy persistent memory'
+      - name: Test Ollama orchestration
+        run: node scripts/test-ollama-tools.mjs
