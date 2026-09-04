@@ -1,6 +1,6 @@
 # Ai2
 
-Self-hosted AI companion starter inspired by modern AI companion apps.
+Self-hosted AI companion platform with adult characters, chat, memory, media adapters and local AI backends.
 
 ## Features
 
@@ -8,25 +8,38 @@ Self-hosted AI companion starter inspired by modern AI companion apps.
 - Fictional adult characters
 - Chat history and local memory
 - Pluggable LLM providers
-- Demo mode works without an API key
+- Demo mode without an API key
 - Mobile-friendly web UI
-- Automated Wan 2.5 text-to-video and image-to-video jobs
-- Background job polling and media collection
+- Wan 2.5 cloud text-to-video and image-to-video
+- Wan2.2 local TI2V-5B backend adapter
+- Automatic background jobs and polling
+- Local media served back into the web UI
 - Optional native C++ bridge
 
 ## LLM providers
 
 `LLM_PROVIDER` supports `demo`, `gemini`, `groq`, `openrouter`, `ollama`, `native`, and `custom` (OpenAI-compatible).
 
-Do not put API keys in the repository.
+Never put API keys in the repository.
 
-## Wan 2.5 video
+## Wan 2.5
 
-Set `WAN_API_KEY` in your local `.env` to enable the video studio. The integration uses the official asynchronous Wan 2.5 API: create a task, poll its status, then expose the resulting video URL. `wan2.5-t2v-preview` is used for text-to-video and `wan2.5-i2v-preview` when an image URL is supplied.
+Set `WAN_API_KEY` in `.env` to enable the cloud video studio. Ai2 creates the asynchronous task, polls it automatically, and displays the completed video. Text-to-video uses `wan2.5-t2v-preview`; supplying an image URL selects the image-to-video model.
 
-Wan provider requests are intentionally limited to non-graphic content. Ai2 does not implement an unrestricted explicit-pornography generator.
+## Wan2.2 local
 
-The provider result URL is temporary (24 hours according to the provider documentation). For permanent media storage, connect object storage such as OSS/S3.
+Ai2 integrates the official `Wan-Video/Wan2.2` repository through `wan22/runner.py`. The adapter uses the upstream `generate.py` entry point with the unified `ti2v-5B` model. Wan2.2 documents TI2V-5B as a 720P text-to-video/image-to-video model and notes that it can run on consumer GPUs such as an RTX 4090 with CPU offloading. The larger A14B models need much more VRAM. citehttps://github.com/Wan-Video/Wan2.2
+
+The large Wan2.2 source tree and model weights are deliberately not copied into Ai2. Install Wan2.2 separately, download its checkpoint, then configure:
+
+```text
+WAN22_ENABLED=true
+WAN22_ROOT=/path/to/Wan2.2
+WAN22_CKPT=/path/to/Wan2.2-TI2V-5B
+WAN22_PYTHON=python3
+WAN22_DEFAULT_SIZE=1280*704
+WAN22_TIMEOUT_MS=1800000
+```
 
 ## Run
 
