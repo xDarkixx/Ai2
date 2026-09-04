@@ -1,7 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root=path.dirname(new URL(import.meta.url).pathname).replace(/^\//,'');
+const root=path.dirname(fileURLToPath(import.meta.url));
 const dataDir=path.join(root,'..','data');
 const file=path.join(dataDir,'access-control.json');
 
