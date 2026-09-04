@@ -1,0 +1,10 @@
+# Training artifacts stay isolated from production runtime.
+output/
+checkpoints/
+*.safetensors
+*.bin
+*.pt
+*.pth
+*.gguf
+.cache/
+__pycache__/
