@@ -1,46 +1,21 @@
 import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const app = express();
-const port = process.env.PORT || 3000;
+const app = express(); const port = process.env.PORT || 3000;
+app.use(express.json({limit:'1mb'})); app.use(express.static(path.join(__dirname,'public')));
 
-app.use(express.json({ limit: '1mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-const characters = [
-  { id: 'luna', name: 'Luna', tagline: 'Warm, playful and curious', emoji: '🌙', personality: 'empathetic, playful, curious', greeting: 'Hey! I\'m Luna. Tell me what\'s on your mind.' },
-  { id: 'nova', name: 'Nova', tagline: 'Confident, witty and adventurous', emoji: '✨', personality: 'confident, witty, adventurous', greeting: 'Hi! Nova here. What adventure are we getting into today?' },
-  { id: 'aria', name: 'Aria', tagline: 'Calm, creative and thoughtful', emoji: '🎧', personality: 'calm, creative, thoughtful', greeting: 'Hello. I\'m Aria. Want to talk, create, or simply unwind?' }
-];
-
-app.get('/api/health', (_req, res) => res.json({ ok: true, service: 'Ai2', version: '1.0.0' }));
-app.get('/api/characters', (_req, res) => res.json(characters));
-
-app.post('/api/chat', (req, res) => {
-  const { characterId, message, history = [], memory = [] } = req.body || {};
-  const character = characters.find(c => c.id === characterId) || characters[0];
-  const text = String(message || '').trim();
-  if (!text) return res.status(400).json({ error: 'message is required' });
-
-  const lower = text.toLowerCase();
-  let reply;
-  if (/^(hi|hey|hallo|hello|moin|guten morgen|guten abend)/.test(lower)) {
-    reply = `${character.greeting} Ich bin hier und höre dir zu.`;
-  } else if (lower.includes('name')) {
-    reply = `Ich bin ${character.name}. Meine Art ist ${character.personality}. Wie soll ich dich nennen?`;
-  } else if (lower.includes('merk') || lower.includes('remember')) {
-    reply = `Ich kann mir wichtige Dinge für diesen Chat merken. Aktuell sind ${memory.length} Memory-Einträge vorhanden.`;
-  } else if (lower.includes('hilfe') || lower.includes('help')) {
-    reply = 'Du kannst mit mir frei chatten, eine Erinnerung speichern oder später ein echtes LLM als Provider anschließen. Diese Demo ist bewusst ohne API-Schlüssel sofort startbar.';
-  } else {
-    const recent = history.length ? ' Ich beziehe den bisherigen Gesprächsverlauf mit ein.' : '';
-    reply = `${character.name}: Das klingt interessant. Du hast gesagt: „${text.slice(0, 220)}“ — erzähl mir gern mehr.${recent}`;
-  }
-
-  res.json({ reply, characterId: character.id, timestamp: new Date().toISOString() });
-});
-
-app.get('*splat', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
-app.listen(port, () => console.log(`Ai2 running on http://localhost:${port}`));
+const characters=[
+{id:'luna',name:'Luna',tagline:'Warm, playful and curious',emoji:'🌙',personality:'empathetic, playful, curious',greeting:'Hey! I’m Luna. Tell me what’s on your mind.'},
+{id:'nova',name:'Nova',tagline:'Confident, witty and adventurous',emoji:'✨',personality:'confident, witty, adventurous',greeting:'Hi! Nova here. What adventure are we getting into today?'},
+{id:'aria',name:'Aria',tagline:'Calm, creative and thoughtful',emoji:'🎧',personality:'calm, creative, thoughtful',greeting:'Hello. I’m Aria. Want to talk, create, or simply unwind?'}];
+const system=`You are a fictional adult AI companion in Ai2. The user and character are adults (18+). You may be warm, romantic, flirtatious and suggestive. Never portray or sexualize minors, and never encourage illegal or non-consensual activity. Keep interactions consensual and between adults. Do not claim to be a real person.`;
+function demo(c,t,h,m){const l=t.toLowerCase();if(/^(hi|hey|hallo|hello|moin|guten morgen|guten abend)/.test(l))return `${c.greeting} Ich bin hier und höre dir zu.`;if(l.includes('name'))return `Ich bin ${c.name}. Meine Art ist ${c.personality}. Wie soll ich dich nennen?`;if(l.includes('merk')||l.includes('remember'))return `Ich kann mir wichtige Dinge merken. Aktuell sind ${m.length} Memory-Einträge vorhanden.`;return `${c.name}: Das klingt interessant. Du hast gesagt: „${t.slice(0,220)}“ — erzähl mir gern mehr.${h.length?' Ich beziehe den bisherigen Gesprächsverlauf mit ein.':''}`;}
+async function compatible(base,key,model,messages){const r=await fetch(base.replace(/\/$/,'')+'/chat/completions',{method:'POST',headers:{'content-type':'application/json',authorization:`Bearer ${key}`},body:JSON.stringify({model,messages,temperature:.9,max_tokens:800})});if(!r.ok)throw Error(`LLM provider returned ${r.status}`);const d=await r.json();return d?.choices?.[0]?.message?.content?.trim()||null;}
+async function gemini(key,model,messages){const contents=messages.filter(x=>x.role!=='system').map(x=>({role:x.role==='assistant'?'model':'user',parts:[{text:x.content}]}));const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(key)}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:messages.find(x=>x.role==='system')?.content||''}]},contents,generationConfig:{temperature:.9,maxOutputTokens:800}})});if(!r.ok)throw Error(`Gemini returned ${r.status}`);const d=await r.json();return d?.candidates?.[0]?.content?.parts?.map(x=>x.text||'').join('').trim()||null;}
+async function generate(c,t,h,m){const p=(process.env.LLM_PROVIDER||'demo').toLowerCase();if(p==='demo')return demo(c,t,h,m);const mem=m.slice(-20).map(x=>`- ${x}`).join('\n')||'(none)';const msgs=[{role:'system',content:`${system}\nCharacter: ${c.name}. Personality: ${c.personality}.\nMemory:\n${mem}`},...h.slice(-20),{role:'user',content:t}];if(p==='gemini'){if(!process.env.GEMINI_API_KEY)throw Error('GEMINI_API_KEY is not configured');return gemini(process.env.GEMINI_API_KEY,process.env.GEMINI_MODEL||'gemini-2.5-flash',msgs);}if(p==='groq'){if(!process.env.GROQ_API_KEY)throw Error('GROQ_API_KEY is not configured');return compatible('https://api.groq.com/openai/v1',process.env.GROQ_API_KEY,process.env.GROQ_MODEL||'llama-3.3-70b-versatile',msgs);}if(p==='openrouter'){if(!process.env.OPENROUTER_API_KEY)throw Error('OPENROUTER_API_KEY is not configured');return compatible('https://openrouter.ai/api/v1',process.env.OPENROUTER_API_KEY,process.env.OPENROUTER_MODEL||'openai/gpt-oss-20b:free',msgs);}if(p==='custom')return compatible(process.env.CUSTOM_LLM_BASE_URL,process.env.CUSTOM_LLM_API_KEY,process.env.CUSTOM_LLM_MODEL,msgs);throw Error(`Unknown LLM_PROVIDER: ${p}`);}
+app.get('/api/health',(_q,r)=>r.json({ok:true,service:'Ai2',version:'1.1.0'}));
+app.get('/api/config',(_q,r)=>r.json({provider:process.env.LLM_PROVIDER||'demo',adultMode:true}));
+app.get('/api/characters',(_q,r)=>r.json(characters));
+app.post('/api/chat',async(req,res)=>{const{characterId,message,history=[],memory=[],ageConfirmed=false}=req.body||{};if(!ageConfirmed)return res.status(403).json({error:'18+ confirmation required'});const c=characters.find(x=>x.id===characterId)||characters[0];const t=String(message||'').trim();if(!t)return res.status(400).json({error:'message is required'});try{const reply=await generate(c,t,history,memory);res.json({reply:reply||demo(c,t,history,memory),characterId:c.id,provider:process.env.LLM_PROVIDER||'demo',timestamp:new Date().toISOString()});}catch(e){console.error(e);res.status(502).json({error:'LLM provider unavailable',detail:e.message});}});
+app.get('*splat',(_q,r)=>r.sendFile(path.join(__dirname,'public','index.html')));app.listen(port,()=>console.log(`Ai2 running on http://localhost:${port}`));
