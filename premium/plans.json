@@ -1,0 +1,8 @@
+{
+  "currency": "EUR",
+  "plans": [
+    {"id":"free","name":"Free","priceMonthly":0,"limits":{"messagesPerDay":50,"mediaJobsPerDay":3,"memories":100}},
+    {"id":"plus","name":"Plus","priceMonthly":9.99,"limits":{"messagesPerDay":500,"mediaJobsPerDay":25,"memories":1000}},
+    {"id":"pro","name":"Pro","priceMonthly":19.99,"limits":{"messagesPerDay":2000,"mediaJobsPerDay":100,"memories":5000}}
+  ]
+}
