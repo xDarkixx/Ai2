@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#0b0b12">
+  <title>Ai2 — AI Companion</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">✦</span><span>Ai2</span></div>
+      <button class="new-chat" id="newChat">＋ Neuer Chat</button>
+      <div class="side-title">Deine Charaktere</div>
+      <div id="characterList" class="character-list"></div>
+      <div class="sidebar-bottom">
+        <button id="memoryBtn">🧠 Memory</button>
+        <button id="settingsBtn">⚙ Einstellungen</button>
+      </div>
+    </aside>
+
+    <main class="chat-area">
+      <header class="topbar">
+        <div><div id="activeName" class="active-name">Luna</div><div id="activeStatus" class="status">● online</div></div>
+        <div class="top-actions"><button id="voiceBtn" title="Voice">🎙</button><button id="themeBtn" title="Theme">◐</button></div>
+      </header>
+
+      <section id="messages" class="messages"></section>
+
+      <form id="composer" class="composer">
+        <button type="button" id="attachBtn" class="icon-btn">＋</button>
+        <input id="messageInput" autocomplete="off" placeholder="Schreib eine Nachricht …">
+        <button type="submit" class="send-btn">➤</button>
+      </form>
+      <div class="disclaimer">Ai2 Demo · Antworten sind lokal simuliert. Für echte KI kann ein LLM-Provider angeschlossen werden.</div>
+    </main>
+
+    <aside id="memoryPanel" class="memory-panel hidden">
+      <div class="panel-head"><h2>Memory</h2><button id="closeMemory">×</button></div>
+      <p class="muted">Wichtige Dinge, die dein Charakter über dich behalten soll.</p>
+      <div id="memoryItems"></div>
+      <form id="memoryForm"><input id="memoryInput" placeholder="z. B. Ich mag Kaffee"><button>Speichern</button></form>
+    </aside>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
