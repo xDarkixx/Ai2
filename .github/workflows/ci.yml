@@ -67,3 +67,5 @@ jobs:
           grep -q '^LLM_PROVIDER=ollama' "$AI2_INSTALL_DIR/.env"
           node --version
           npm --version
+          cd "$AI2_INSTALL_DIR"
+          npm run doctor
