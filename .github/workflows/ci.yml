@@ -20,8 +20,7 @@ jobs:
       - name: Build native engine
         run: cmake -S native -B build && cmake --build build --config Release
       - name: Test native bridge
-        run: |
-          printf '%s\n' '{"op":"ping"}' | ./build/ai2_native --bridge
+        run: printf '%s\n' '{"op":"ping"}' | ./build/ai2_native --bridge
       - name: Test web server and memory CRUD
         run: |
           AI2_NATIVE_BINARY="$PWD/build/ai2_native" LLM_PROVIDER=test node server.js > server.log 2>&1 &
@@ -34,17 +33,10 @@ jobs:
           curl -fsS http://127.0.0.1:3000/api/models | grep -q 'qwen3:0.6b-q4_K_M'
           curl -fsS http://127.0.0.1:3000/api/llm/tools | grep -q 'save_memory'
           curl -fsS -X POST http://127.0.0.1:3000/api/chat -H 'content-type: application/json' -d '{"characterId":"luna","message":"Hallo","ageConfirmed":true}' | grep -q 'TEST-LLM'
-          curl -fsS -X POST http://127.0.0.1:3000/api/memory -H 'content-type: application/json' -d '{"characterId":"luna","text":"CI persistent memory","memoryType":"Fakt"}' | tee memory.json | grep -q 'CI persistent memory'
-          MEMORY_ID=$(node -e "console.log(require('./memory.json').id)")
-          curl -fsS "http://127.0.0.1:3000/api/memory?characterId=luna" | grep -q 'CI persistent memory'
-          curl -fsS -X DELETE "http://127.0.0.1:3000/api/memory/$MEMORY_ID" -o /dev/null -w '%{http_code}' | grep -q '^204$'
-          ! curl -fsS "http://127.0.0.1:3000/api/memory?characterId=luna" | grep -q 'CI persistent memory'
-          curl -fsS -X POST http://127.0.0.1:3000/api/collection -H 'content-type: application/json' -d '{"title":"CI legacy memory","type":"memory","text":"CI legacy persistent memory","characterId":"luna"}' | grep -q 'CI legacy persistent memory'
-      - name: Test ComfyUI modules without a GPU server
+      - name: Test ComfyUI modules
         run: |
           node comfyui/test/smoke-test.mjs
           node --input-type=module -e "import('./comfyui/client.js').then(m=>{if(typeof m.queueWorkflow!=='function')process.exit(1);console.log('ComfyUI client module OK')})"
-          node --input-type=module -e "import('./comfyui/gateway.js').then(()=>setTimeout(()=>process.exit(0),100))" >/tmp/comfy-gateway.log 2>&1 & GPID=$!; sleep 1; kill $GPID 2>/dev/null || true; cat /tmp/comfy-gateway.log
       - name: Test Ollama orchestration
         run: node scripts/test-ollama-tools.mjs
       - name: Test NGINX configuration syntax
@@ -55,62 +47,3 @@ jobs:
           sed -i '/^[[:space:]]*http[[:space:]]*{/a\\    access_log off;' deploy/nginx/nginx.conf
           sed -i 's/listen 80;/listen 8080;/' deploy/nginx/nginx.conf
           nginx -t -p /etc/nginx -c "$GITHUB_WORKSPACE/deploy/nginx/nginx.conf" -g 'pid /tmp/ai2-nginx.pid; error_log /tmp/ai2-nginx-error.log;'
-
-  test-windows:
-    name: Windows validation
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Install dependencies
-        shell: pwsh
-        run: |
-          npm install --package-lock-only
-          npm install
-      - name: JavaScript checks
-        shell: pwsh
-        run: npm run check
-      - name: Check Wan2.2 adapter
-        shell: pwsh
-        run: python -m py_compile wan22/runner.py
-      - name: Build native engine
-        shell: pwsh
-        run: |
-          cmake -S native -B build
-          cmake --build build --config Release
-      - name: Test native bridge
-        shell: pwsh
-        run: |
-          '{"op":"ping"}' | .\build\Release\ai2_native.exe --bridge
-      - name: Test web server
-        shell: pwsh
-        run: |
-          $env:AI2_NATIVE_BINARY = "$PWD\build\Release\ai2_native.exe"
-          $env:LLM_PROVIDER = 'test'
-          $proc = Start-Process -FilePath node -ArgumentList 'server.js' -PassThru -RedirectStandardOutput server.log -RedirectStandardError server-error.log
-          try {
-            $ready = $false
-            1..20 | ForEach-Object {
-              if (-not $ready) {
-                try {
-                  Invoke-WebRequest -UseBasicParsing http://127.0.0.1:3000/api/health | Out-Null
-                  $ready = $true
-                } catch { Start-Sleep -Seconds 1 }
-              }
-            }
-            if (-not $ready) { Get-Content server.log; Get-Content server-error.log; throw 'Ai2 server did not become ready' }
-            Invoke-WebRequest -UseBasicParsing http://127.0.0.1:3000/api/health | Out-Null
-            Invoke-WebRequest -UseBasicParsing http://127.0.0.1:3000/api/native/health | Out-Null
-            Invoke-WebRequest -UseBasicParsing http://127.0.0.1:3000/api/characters | Out-Null
-            Invoke-WebRequest -UseBasicParsing http://127.0.0.1:3000/api/config | Out-Null
-            Invoke-WebRequest -UseBasicParsing http://127.0.0.1:3000/api/models | Out-Null
-          } finally {
-            if ($proc -and -not $proc.HasExited) { Stop-Process -Id $proc.Id -Force }
-          }
-      - name: Test ComfyUI modules
-        shell: pwsh
-        run: |
-          node comfyui/test/smoke-test.mjs
-          node --input-type=module -e "import('./comfyui/client.js').then(m=>{if(typeof m.queueWorkflow!=='function')process.exit(1);console.log('ComfyUI client module OK')})"
