@@ -8,7 +8,7 @@
 <div class="admin-shell">
 <header class="admin-topbar"><div class="brand"><span class="brand-mark">✦</span><span>Ai2</span><span class="brand-badge">ADMIN</span></div><div class="admin-actions"><button id="refreshBtn">↻ Aktualisieren</button><a href="/">← Zur App</a></div></header>
 <main class="admin-main">
-<section class="admin-hero"><div><span class="eyebrow">CONTROL CENTER</span><h1>Admin Dashboard</h1><p>Verwalte Ai2, Charaktere, Medien, Abos und 18+ Funktionen zentral.</p></div><div class="system-pill"><i></i><span id="systemStatus">Prüfe System…</span></div></section>
+<section class="admin-hero"><div><span class="eyebrow">CONTROL CENTER</span><h1>Admin Dashboard</h1><p>Verwalte Ai2, Charaktere, Medien, Abos, Gutscheincodes und 18+ Funktionen zentral.</p></div><div class="system-pill"><i></i><span id="systemStatus">Prüfe System…</span></div></section>
 <section class="stat-grid" id="stats"></section>
 <section class="admin-grid">
 <div class="admin-card wide"><div class="card-head"><div><span class="eyebrow">ZUGRIFF</span><h2>Premium & 18+ Steuerung</h2></div></div>
@@ -22,13 +22,20 @@
 <label><input id="requireAgeVerification" type="checkbox"> Altersbestätigung serverseitig verlangen</label>
 <div class="access-plans"><strong>Pläne</strong><label><input id="planFree" type="checkbox"> Free</label><label><input id="planPlus" type="checkbox"> Plus</label><label><input id="planPro" type="checkbox"> Pro</label></div>
 <button id="saveAccess" type="button">Änderungen speichern</button><span id="accessStatus" class="stat-sub">Noch nicht verbunden.</span>
-</div>
-</div>
+</div></div>
 <div class="admin-card wide"><div class="card-head"><div><span class="eyebrow">PLATTFORM</span><h2>System & KI</h2></div></div><div class="system-grid" id="systemGrid"></div></div>
+<div class="admin-card wide"><div class="card-head"><div><span class="eyebrow">PROMO</span><h2>Coupons & Promo-Codes</h2><p>Rabatte für Free, Plus oder Pro mit Ablaufdatum und Nutzungslimit.</p></div></div>
+<form id="couponForm" class="admin-form">
+<input name="code" placeholder="Code, z. B. AI2WELCOME">
+<select name="type"><option value="percent">Prozent-Rabatt</option><option value="fixed">Fester Betrag (EUR)</option></select>
+<input name="value" type="number" min="0.01" step="0.01" required placeholder="Wert, z. B. 20">
+<select name="plan"><option value="">Alle Pläne</option><option value="free">Free</option><option value="plus">Plus</option><option value="pro">Pro</option></select>
+<input name="maxUses" type="number" min="1" placeholder="Max. Nutzungen (leer = unbegrenzt)">
+<input name="expiresAt" type="datetime-local">
+<button>＋ Promo-Code erstellen</button>
+</form><div id="couponTable" class="admin-list"></div></div>
 <div class="admin-card"><div class="card-head"><div><span class="eyebrow">CHARAKTERE</span><h2>Charakterverwaltung</h2></div></div><form id="charForm" class="admin-form"><input name="name" required placeholder="Name"><input name="tagline" placeholder="Kurzbeschreibung"><input name="emoji" value="💫" maxlength="4" placeholder="Emoji"><textarea name="personality" placeholder="Persönlichkeit"></textarea><textarea name="appearance" placeholder="Aussehen / Stil"></textarea><button>＋ Charakter anlegen</button></form><div id="characterTable" class="admin-list"></div></div>
 <div class="admin-card"><div class="card-head"><div><span class="eyebrow">MEDIA</span><h2>Video-Aufträge</h2></div></div><div id="mediaTable" class="admin-list"></div></div>
 <div class="admin-card wide"><div class="card-head"><div><span class="eyebrow">DATEN</span><h2>Aktivität</h2></div></div><div class="activity-grid"><button id="loadChats">Chats laden</button><button id="loadCollection">Sammlung laden</button><div id="activityOutput" class="activity-output">Bereit.</div></div></div>
-</section>
-</main>
-</div><script src="/admin.js"></script>
+</section></main></div><script src="/admin.js"></script>
 </body></html>
